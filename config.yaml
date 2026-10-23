@@ -1,0 +1,97 @@
+# API keys go in secrets.yaml (not committed), e.g.  CARTO_API_KEY: <your key>
+
+project:
+  seed: 42
+
+paths:
+  raw_stores: blinkit-darkstores.csv
+  processed_dir: data/processed
+  synthetic_dir: data/synthetic
+
+# Delhi + core NCR: Gurugram, Noida, Greater Noida, Ghaziabad, Faridabad
+region:
+  lat_min: 28.30
+  lat_max: 28.95
+  lng_min: 76.80
+  lng_max: 77.60
+
+# Single mother warehouse (assumed location)
+depot:
+  id: WH_OKHLA
+  name: Okhla Industrial Area (assumed mother warehouse)
+  lat: 28.5310
+  lng: 77.2710
+
+osrm:
+  base_url: https://router.project-osrm.org
+  profile: driving
+  # sources + destinations per request stay <= 2 * chunk_size (public server limit is 100)
+  chunk_size: 50
+  request_delay_sec: 1.0
+  timeout_sec: 60
+  max_retries: 3
+
+# Capacity in standard crates (600x400x300 mm). Listed smallest to largest.
+crate_weight_kg: 12
+vehicles:
+  - type: S
+    name: Tata Ace (mini truck)
+    capacity_crates: 60
+    payload_kg: 750
+    fixed_cost_inr: 1200
+    cost_per_km_inr: 9
+    available: 40
+  - type: M
+    name: Tata 407 (light commercial)
+    capacity_crates: 120
+    payload_kg: 2500
+    fixed_cost_inr: 2000
+    cost_per_km_inr: 14
+    available: 50
+  - type: L
+    name: Eicher 14 ft (medium commercial)
+    capacity_crates: 240
+    payload_kg: 4000
+    fixed_cost_inr: 3200
+    cost_per_km_inr: 20
+    available: 50
+
+stores:
+  tiers:
+    S: {share: 0.30, storage_capacity_crates: 150, mean_demand_crates: 22}
+    M: {share: 0.50, storage_capacity_crates: 250, mean_demand_crates: 35}
+    L: {share: 0.20, storage_capacity_crates: 400, mean_demand_crates: 55}
+  demand_cv: 0.25
+  # current stock as a fraction of storage capacity
+  on_hand_fraction: [0.55, 0.90]
+  # dense / narrow-lane areas: largest vehicle type allowed inside radius
+  restricted_zones:
+    - {name: Chandni Chowk, lat: 28.6506, lng: 77.2303, radius_km: 1.5, max_vehicle: S}
+    - {name: Karol Bagh, lat: 28.6519, lng: 77.1909, radius_km: 1.5, max_vehicle: M}
+    - {name: Lajpat Nagar, lat: 28.5677, lng: 77.2433, radius_km: 1.5, max_vehicle: M}
+    - {name: Laxmi Nagar, lat: 28.6304, lng: 77.2773, radius_km: 1.5, max_vehicle: M}
+    - {name: Shahdara, lat: 28.6735, lng: 77.2894, radius_km: 1.5, max_vehicle: M}
+
+# Forecast multipliers applied on top of the base forecast
+scenarios:
+  base: {multiplier: [1.00, 1.00]}
+  festive: {multiplier: [1.20, 1.40]}
+  low: {multiplier: [0.75, 0.85]}
+
+model:
+  # swap this file to re-plan with a new forecast
+  forecast_file: data/synthetic/forecasts/forecast_base.csv
+
+solver:
+  output_dir: outputs
+  # stage 1: OR-Tools builds the warm start (CHRISTOFIDES gave the best start in tuning)
+  ortools_time_limit_sec: 300
+  ortools_first_solution: CHRISTOFIDES
+  # stage 2: Gurobi improves it and proves a bound
+  gurobi:
+    license_file: C:/gurobi/gurobi.lic
+    time_limit_sec: 1200
+    mip_gap: 0.0
+    threads: 0
+    seed: 42
+    log_to_console: true

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# API keys
+secrets.yaml
+
+# Gurobi licence and logs
+*.lic
+gurobi.log
+*.log
+
+# Generated data and results (rebuilt by run_all.py and the notebook)
+data/
+outputs/
+*.csv
+!blinkit-darkstores.csv
