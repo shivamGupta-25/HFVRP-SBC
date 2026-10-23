@@ -86,11 +86,9 @@ Without `secrets.yaml` the map simply offers only the Esri styles.
 
 ---
 
-## 3. Step 1 — Generate the Data
+## 3. Step 1 — Generate the Data (automatic)
 
-```powershell
-.\.venv\Scripts\python.exe src\data_pipeline\run_all.py
-```
+**You don't need to do anything:** the notebook's first code cell (cell 7) checks `data/` and runs only the missing steps. On a fresh clone it builds everything; on later runs it skips this step.
 
 | Stage | What it does | Output |
 |---|---|---|
@@ -98,7 +96,13 @@ Without `secrets.yaml` the map simply offers only the Esri styles.
 | 2/3 | Generates the fleet, store storage/stock/access and 3 forecast scenarios (seeded, so reproducible) | `data/synthetic/…` |
 | 3/3 | Requests the 362 × 362 road distance and time matrix from OSRM (64 requests, about 1.5 min) | `data/processed/nodes.csv`, `distance_km.csv`, `duration_min.csv` |
 
-Re-run this only when you change the raw stores, region, depot, fleet, store settings or scenarios in `config.yaml`.
+If the store list is missing, all three steps run. Otherwise only the missing step runs, so OSRM is not called again needlessly.
+
+**Rebuilding after changing `config.yaml`** (region, depot, fleet, store settings or scenarios): existing files are not rebuilt automatically. Either set `REGENERATE_DATA = True` in cell 7 for one run, or run the pipeline from the terminal:
+
+```powershell
+.\.venv\Scripts\python.exe src\data_pipeline\run_all.py
+```
 
 ---
 
@@ -109,7 +113,7 @@ Open [hfvrp_model.ipynb](hfvrp_model.ipynb) and run the cells top to bottom (**R
 | Cells | Section | What happens | Time |
 |---|---|---|---|
 | 1–6 | Formulation | Problem, assumptions, notation, model, KPIs (markdown) | – |
-| 7 | Setup | Loads config and data. **`FORECAST_FILE` is set here** | < 1 s |
+| 7 | Setup | Generates `data/` if missing, loads config and data. **`FORECAST_FILE` and `REGENERATE_DATA` are set here** | < 1 s (≈1.5 min first time) |
 | 8 | Model size | Variable counts and demand summary | < 1 s |
 | 10 | Instance | Builds the model input and chooses `outputs/<scenario>/` | < 1 s |
 | 12 | **Stage 1: OR-Tools** | Builds the warm-start plan | ~5 min |
@@ -119,9 +123,9 @@ Open [hfvrp_model.ipynb](hfvrp_model.ipynb) and run the cells top to bottom (**R
 | 20 | Charts | Utilisation histogram, load vs capacity, cost split | < 1 s |
 | 22 | Dispatch sheet | Every route with stop sequence, load, km and cost | < 1 s |
 | 24 | Route map | Interactive map on real roads | ~1 min first time |
-| 25 | Findings | Written interpretation of the base scenario | – |
+| 26 | Findings | Interpretation generated from the current results | < 1 s |
 
-**Re-analysing without re-solving:** cells 16–24 read the saved files in `outputs/<scenario>/`. After a solve you can restart the kernel and run cells **7, 10, 16–24** only; skip 12 and 14.
+**Re-analysing without re-solving:** cells 16–24 read the saved files in `outputs/<scenario>/`. After a solve you can restart the kernel and run cells **7, 10, 16–26** only; skip 12 and 14.
 
 **Quick test:** set `ortools_time_limit_sec: 30` and `time_limit_sec: 60` in `config.yaml` to run the whole notebook in about 2 minutes. The gap will be larger.
 
@@ -171,7 +175,32 @@ The model automatically caps each store's delivery at its free storage space and
 
 ---
 
-## 8. Troubleshooting
+## 8. Starting Fresh (Reset the Project)
+
+Run these from the project folder in PowerShell.
+
+**Option A: clean generated files, keep the installed packages** (`.venv`) and your key (`secrets.yaml`):
+
+```powershell
+Remove-Item -Recurse -Force data, outputs -ErrorAction SilentlyContinue; Get-ChildItem -Path src -Recurse -Directory -Force -Include __pycache__, .ipynb_checkpoints | Remove-Item -Recurse -Force; Get-ChildItem -Force -Name
+```
+
+**Option B: full first-time reset**, which also removes and reinstalls the virtual environment:
+
+```powershell
+Remove-Item -Recurse -Force data, outputs, .venv -ErrorAction SilentlyContinue; Get-ChildItem -Path src -Recurse -Directory -Force -Include __pycache__, .ipynb_checkpoints | Remove-Item -Recurse -Force
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+After either option:
+1. In VS Code, open the notebook, click **Clear All Outputs**, **Restart** the kernel and save.
+2. After Option B, re-select the `.venv` kernel.
+3. Click **Run All**. Cell 7 rebuilds `data/` automatically (about 1.5 min), then the solver runs (about 25 min).
+
+---
+
+## 9. Troubleshooting
 
 | Problem | Fix |
 |---|---|

@@ -1,5 +1,3 @@
-# API keys go in secrets.yaml (not committed), e.g.  CARTO_API_KEY: <your key>
-
 project:
   seed: 42
 
