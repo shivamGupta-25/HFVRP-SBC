@@ -29,7 +29,7 @@ def vehicles_table(cfg: dict) -> pd.DataFrame:
 
 
 def effective_demand(store_params: pd.DataFrame, forecast: pd.DataFrame, vehicles: pd.DataFrame) -> pd.DataFrame:
-    """q_i = min(forecast_i, free storage_i, capacity of largest vehicle allowed at i)."""
+    """q_i = min(R_i, C_i - H_i, Q̄_i): forecast, free storage, largest allowed vehicle capacity."""
     df = store_params.merge(forecast, on="store_id", how="left", validate="1:1")
     if df["forecast_crates"].isna().any():
         missing = df.loc[df["forecast_crates"].isna(), "store_id"].tolist()

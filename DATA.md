@@ -149,7 +149,7 @@ Total fleet capacity = **20,400 crates**.
 | On-hand stock (min / mean / max) | 84 / 181 / 359 crates |
 | Free space $C_i - H_i$ (min / median / max) | 15 / 59 / 178 crates |
 
-The compatibility parameter used in the model is derived from this file: $a_{ik} = 1$ if $Q_k \le Q_{\text{max\_vehicle}(i)}$, else 0.
+The compatibility parameter used in the model is derived from this file: $a_{ik} = 1$ if $Q_k \le \bar{Q}_i$, else 0, where $\bar{Q}_i$ is the capacity of the store's `max_vehicle_type` (the largest vehicle allowed at store $i$).
 
 ---
 
@@ -188,16 +188,16 @@ Forecasting is **out of scope**. These files are a **placeholder for the output 
 The quantity actually delivered to store $i$ is computed in `src/common.py → effective_demand()`:
 
 $$
-q_i = \min\big(\,R_i,\;\; C_i - H_i,\;\; Q_{\text{max\_vehicle}(i)}\,\big)
+q_i = \min\big(R_i,\;\; C_i - H_i,\;\; \bar{Q}_i\big) \qquad \forall\, i \in S
 $$
 
 - $R_i$: forecast requirement
 - $C_i - H_i$: free storage space (cannot deliver more than the store can hold)
-- $Q_{\text{max\_vehicle}(i)}$: one visit per store, so the load cannot exceed the largest vehicle allowed there
+- $\bar{Q}_i = \max_{k \in K:\, a_{ik}=1} Q_k$: one visit per store, so the load cannot exceed the largest vehicle allowed there
 
 Unserved quantity $R_i - q_i$ is reported as a KPI (it signals the store needs more space or a second trip).
 
-| Scenario | Forecast | Deliverable $\sum q_i$ | Unserved | Stores limited by space | Stores limited by vehicle | Min. vehicles (all L) |
+| Scenario | Forecast $\sum R_i$ | Deliverable $\sum q_i$ | Unserved $\sum (R_i - q_i)$ | Stores limited by space | Stores limited by vehicle | Min. vehicles (all L) |
 |----------|---------:|-----------------------:|---------:|------------------------:|--------------------------:|----------------------:|
 | base | 12,400 | 11,988 | 412 | 44 | 0 | 50 |
 | festive | 16,148 | 14,867 | 1,281 | 96 | 1 | 62 |
