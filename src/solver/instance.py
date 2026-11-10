@@ -27,7 +27,8 @@ def _matrix(path, ids):
     return m.loc[ids, ids].to_numpy(dtype=float)
 
 
-def load_instance(cfg: dict, forecast_file: str | None = None) -> Instance:
+def load_instance(cfg: dict, forecast_file: str | None = None, n_stores: int | None = None) -> Instance:
+    """n_stores: solve only a random subset of stores (nested: the same seeded order for every size)."""
     proc = ROOT / cfg["paths"]["processed_dir"]
     syn = ROOT / cfg["paths"]["synthetic_dir"]
     forecast_file = forecast_file or cfg["model"]["forecast_file"]
@@ -37,6 +38,9 @@ def load_instance(cfg: dict, forecast_file: str | None = None) -> Instance:
     forecast = pd.read_csv(ROOT / forecast_file)
     demand = effective_demand(store_params, forecast, vehicles)
     demand = demand[demand["demand_crates"] > 0].reset_index(drop=True)
+    if n_stores is not None and n_stores < len(demand):
+        order = np.random.default_rng(cfg["project"]["seed"]).permutation(len(demand))
+        demand = demand.iloc[np.sort(order[:n_stores])].reset_index(drop=True)
 
     ids = [cfg["depot"]["id"]] + demand["store_id"].astype(str).tolist()
     nodes = pd.read_csv(proc / "nodes.csv", dtype={"node_id": str}).set_index("node_id").loc[ids].reset_index()

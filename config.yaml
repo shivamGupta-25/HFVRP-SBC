@@ -103,3 +103,12 @@ solver:
       cuts_per_round: 300
       # stop when a round raises the bound by less than this fraction
       min_improvement: 0.0005
+
+# Notebook Section 10: the same model on nested random subsets of stores
+scaling_study:
+  store_counts: [50, 100, 200, 361]
+  ortools_time_limit_sec: 300
+  # same limit for every size so solve times are comparable
+  gurobi_time_limit_sec: 1800
+  # 0 = run until proven optimal or the time limit, so the gap shows what each size can reach
+  mip_gap: 0.0

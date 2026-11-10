@@ -84,6 +84,53 @@ def dispatch_sheet(routes: pd.DataFrame) -> pd.DataFrame:
                    "distance_km", "drive_time_min", "total_cost_inr", "sequence"]]
 
 
+def scaling_table(df: pd.DataFrame) -> pd.DataFrame:
+    """Presentation table for the scaling study."""
+    t = pd.DataFrame({
+        "Stores": df["stores"],
+        "Vehicles": df["vehicles"],
+        "Binary variables": df["binary_vars"].map("{:,}".format),
+        "Best cost (Rs)": df["best_cost_inr"].map("{:,.0f}".format),
+        "Lower bound (Rs)": df["lower_bound_inr"].map("{:,.0f}".format),
+        "Gap (%)": df["gap_pct"].round(2),
+        "Status": df["status"],
+        "B&B nodes": df["nodes_explored"].astype(int),
+        "Solve time (min)": (df["total_sec"] / 60).round(1),
+        "Cost per crate (Rs)": df["cost_per_crate_inr"].round(2),
+    })
+    return t.set_index("Stores")
+
+
+def plot_scaling(df: pd.DataFrame, target_gap_pct: float | None = None) -> plt.Figure:
+    """Gap, solve time and model size against the number of stores."""
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
+    x = df["stores"].astype(str)
+
+    bars = axes[0].bar(x, df["gap_pct"], color="tab:red")
+    axes[0].bar_label(bars, labels=[f"{v:.2f}%" for v in df["gap_pct"]])
+    if target_gap_pct is not None:
+        axes[0].axhline(target_gap_pct, color="gray", ls="--", label=f"{target_gap_pct:g}% target")
+        axes[0].legend()
+    axes[0].set(title="Proven optimality gap", xlabel="Stores", ylabel="Gap (%)")
+
+    parts = [("ortools_sec", "OR-Tools", "tab:blue"), ("cuts_sec", "Capacity cuts", "tab:orange"),
+             ("gurobi_sec", "Gurobi", "tab:green")]
+    bottom = pd.Series(0.0, index=df.index)
+    for col, label, color in parts:
+        axes[1].bar(x, df[col] / 60, bottom=bottom, label=label, color=color)
+        bottom += df[col] / 60
+    axes[1].set(title="Solve time", xlabel="Stores", ylabel="Minutes")
+    axes[1].legend()
+
+    axes[2].plot(df["stores"], df["binary_vars"], marker="o", color="tab:purple")
+    for s, v in zip(df["stores"], df["binary_vars"]):
+        axes[2].annotate(f"{v:,}", (s, v), textcoords="offset points", xytext=(0, 8), ha="center")
+    axes[2].set(title="Model size (binary variables)", xlabel="Stores", ylabel="Binary variables")
+
+    fig.tight_layout()
+    return fig
+
+
 def key_findings(out: Path, vehicles: pd.DataFrame) -> str:
     """Markdown findings computed from the saved results, so they stay correct for any scenario."""
     s, routes, stops = load_results(out)

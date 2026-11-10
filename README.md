@@ -75,6 +75,7 @@ In VS Code, open [hfvrp_model.ipynb](hfvrp_model.ipynb) and select the **`.venv`
 | `solver.gurobi.mip_gap` | Target optimality gap (default `0.03` = 3 %) |
 | `solver.gurobi.mip_focus` | `0` balanced, `1` find better plans, `2` prove optimality, `3` raise the bound |
 | `solver.gurobi.capacity_cuts` | Rounded capacity cuts added before branching to tighten the lower bound (`enabled`, `max_rounds`, `cuts_per_round`, `min_improvement`) |
+| `scaling_study` | Store counts for the scaling study (`[50, 100, 200, 361]`), and its OR-Tools / Gurobi time limits and gap target |
 | `model.forecast_file` | Default forecast used by the notebook |
 
 **API keys** go in a separate file **`secrets.yaml`** in the project folder. It is git-ignored and merged into the config automatically:
@@ -120,15 +121,16 @@ Open [hfvrp_model.ipynb](hfvrp_model.ipynb) and run the cells top to bottom (**R
 | 8 | Model size | Variable counts and demand summary | < 1 s |
 | 10 | Instance | Builds the model input and chooses `outputs/<scenario>/` | < 1 s |
 | 12 | **Stage 1: OR-Tools** | Builds the warm-start plan | ~5 min |
-| 14 | **Stage 2: Gurobi** | Improves the plan, proves the lower bound and saves results. Shows the Gurobi log | ~20 min |
+| 14 | **Stage 2: Gurobi** | Adds capacity cuts, improves the plan, proves the lower bound and saves results. Shows the Gurobi log | up to `time_limit_sec` |
 | 16 | KPIs | Cost, gap, vehicles used, utilisation, cost per crate | < 1 s |
 | 18 | Fleet mix | What each vehicle type does | < 1 s |
 | 20 | Charts | Utilisation histogram, load vs capacity, cost split | < 1 s |
 | 22 | Dispatch sheet | Every route with stop sequence, load, km and cost | < 1 s |
 | 24 | Route map | Interactive map on real roads | ~1 min first time |
 | 26 | Findings | Interpretation generated from the current results | < 1 s |
+| 28–30 | **Scaling study** | Solves 50 / 100 / 200 / 361 stores, then shows a table and a chart of gap, solve time and model size | up to ~2.5 h first time, cached afterwards |
 
-**Re-analysing without re-solving:** cells 16–24 read the saved files in `outputs/<scenario>/`. After a solve you can restart the kernel and run cells **7, 10, 16–26** only; skip 12 and 14.
+**Re-analysing without re-solving:** cells 16–26 read the saved files in `outputs/<scenario>/`. After a solve you can restart the kernel and run cells **7, 10, 16–26** only; skip 12 and 14. The scaling study (cell 28) reuses cached results unless `RERUN_SCALING = True`.
 
 **Quick test:** set `ortools_time_limit_sec: 30` and `time_limit_sec: 60` in `config.yaml` to run the whole notebook in about 2 minutes. The gap will be larger.
 
@@ -165,6 +167,8 @@ The model automatically caps each store's delivery at its free storage space and
 | `gurobi.log` | Full Gurobi solver log |
 | `route_map.html` | Interactive map, which opens in any browser |
 | `route_geometries.json` | Cached road paths from OSRM |
+
+**Scaling study** (`outputs/scaling/`): one sub-folder per size (`base_n50`, `base_n100`, …) with the same files as above. It also contains `scaling_results.csv` (the comparison table) and `scaling_study.png` (the chart for the presentation).
 
 ---
 
