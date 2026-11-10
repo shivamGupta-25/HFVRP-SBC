@@ -89,7 +89,17 @@ solver:
   gurobi:
     license_file: C:/gurobi/gurobi.lic
     time_limit_sec: 3600
-    mip_gap: 0.0
+    # stop as soon as the plan is proven within 3 % of the optimum
+    mip_gap: 0.03
+    # 0 balanced, 1 find better plans, 2 prove optimality, 3 raise the bound
+    mip_focus: 0
     threads: 0
     seed: 42
     log_to_console: true
+    # rounded capacity cuts added before branching; valid, so they never remove a feasible plan
+    capacity_cuts:
+      enabled: true
+      max_rounds: 30
+      cuts_per_round: 300
+      # stop when a round raises the bound by less than this fraction
+      min_improvement: 0.0005

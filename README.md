@@ -71,7 +71,10 @@ In VS Code, open [hfvrp_model.ipynb](hfvrp_model.ipynb) and select the **`.venv`
 | `depot` | Warehouse ID, name and coordinates |
 | `vehicles` | Capacity (crates), fixed cost, cost per km and number available per type |
 | `solver.ortools_time_limit_sec` | Stage 1 time (default 300 s) |
-| `solver.gurobi.time_limit_sec` | Stage 2 time (default 1200 s). More time can only tighten the gap |
+| `solver.gurobi.time_limit_sec` | Stage 2 time (default 3600 s). Gurobi stops earlier once the gap target is reached |
+| `solver.gurobi.mip_gap` | Target optimality gap (default `0.03` = 3 %) |
+| `solver.gurobi.mip_focus` | `0` balanced, `1` find better plans, `2` prove optimality, `3` raise the bound |
+| `solver.gurobi.capacity_cuts` | Rounded capacity cuts added before branching to tighten the lower bound (`enabled`, `max_rounds`, `cuts_per_round`, `min_improvement`) |
 | `model.forecast_file` | Default forecast used by the notebook |
 
 **API keys** go in a separate file **`secrets.yaml`** in the project folder. It is git-ignored and merged into the config automatically:

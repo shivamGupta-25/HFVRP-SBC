@@ -5,6 +5,7 @@ from pathlib import Path
 import gurobipy as gp
 from gurobipy import GRB
 
+from solver.cuts import add_capacity_cuts, add_fleet_count_cuts
 from solver.instance import Instance
 
 STATUS = {GRB.OPTIMAL: "OPTIMAL", GRB.TIME_LIMIT: "TIME_LIMIT", GRB.INTERRUPTED: "INTERRUPTED"}
@@ -63,10 +64,18 @@ def solve_gurobi(inst: Instance, start_routes: list[dict], gcfg: dict, log_file:
         model.addLConstr(f[i, j, k] - int(q[j]) * x[i, j, k], GRB.GREATER_EQUAL, 0)
         model.addLConstr(f[i, j, k] - int(Q[k] - q[i]) * x[i, j, k], GRB.LESS_EQUAL, 0)
 
+    xvars = [x[a] for a in arcs]
+    cut_info = {"fleet_count_cuts": add_fleet_count_cuts(model, inst, {k: x_out_k.get((0, k), []) for k in range(K)})}
+    ccfg = gcfg.get("capacity_cuts", {})
+    if ccfg.get("enabled", False):
+        cut_info |= add_capacity_cuts(model, inst, arcs, xvars, ccfg["max_rounds"], ccfg["cuts_per_round"],
+                                      ccfg["min_improvement"])
+
     _set_start(model, x, f, start_routes, q)
 
     model.Params.TimeLimit = gcfg["time_limit_sec"]
     model.Params.MIPGap = gcfg["mip_gap"]
+    model.Params.MIPFocus = gcfg.get("mip_focus", 0)
     model.Params.Threads = gcfg["threads"]
     model.Params.Seed = gcfg["seed"]
     model.optimize()
@@ -74,7 +83,7 @@ def solve_gurobi(inst: Instance, start_routes: list[dict], gcfg: dict, log_file:
     if model.SolCount == 0:
         raise RuntimeError(f"Gurobi found no solution (status {model.Status}).")
 
-    routes = _extract_routes(arcs, model.getAttr("X", [x[a] for a in arcs]))
+    routes = _extract_routes(arcs, model.getAttr("X", xvars))
     info = {
         "status": STATUS.get(model.Status, str(model.Status)),
         "objective_inr": model.ObjVal,
@@ -85,6 +94,7 @@ def solve_gurobi(inst: Instance, start_routes: list[dict], gcfg: dict, log_file:
         "n_binary_vars": len(arcs),
         "n_continuous_vars": len(flow_arcs),
         "n_constraints": model.NumConstrs,
+        **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in cut_info.items()},
     }
     model.dispose()
     env.dispose()
