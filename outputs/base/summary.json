@@ -1,0 +1,35 @@
+{
+  "scenario": "base",
+  "forecast_file": "data/synthetic/forecasts/forecast_base.csv",
+  "n_stores": 361,
+  "forecast_crates": 12400,
+  "delivered_crates": 11988,
+  "unserved_crates": 412,
+  "routes": 55,
+  "vehicles_used": {
+    "S": 2,
+    "M": 5,
+    "L": 48
+  },
+  "total_cost_inr": 234051.08,
+  "fixed_cost_inr": 166000.0,
+  "variable_cost_inr": 68051.08,
+  "total_distance_km": 3493.12,
+  "total_drive_time_hr": 77.43,
+  "fleet_utilization_pct": 97.94,
+  "avg_route_utilization_pct": 97.62,
+  "cost_per_crate_inr": 19.52,
+  "warm_start_cost_inr": 234289.54,
+  "ortools_runtime_sec": 300.2,
+  "gurobi": {
+    "status": "TIME_LIMIT",
+    "objective_inr": 234051.085,
+    "best_bound_inr": 217742.8274,
+    "mip_gap_pct": 6.9678,
+    "runtime_sec": 3600.191,
+    "nodes_explored": 1.0,
+    "n_binary_vars": 370782,
+    "n_continuous_vars": 369729,
+    "n_constraints": 741239
+  }
+}

@@ -88,7 +88,7 @@ solver:
   # stage 2: Gurobi improves it and proves a bound
   gurobi:
     license_file: C:/gurobi/gurobi.lic
-    time_limit_sec: 1200
+    time_limit_sec: 3600
     mip_gap: 0.0
     threads: 0
     seed: 42
