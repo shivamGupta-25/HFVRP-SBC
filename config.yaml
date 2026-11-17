@@ -83,12 +83,12 @@ model:
 solver:
   output_dir: outputs
   # stage 1: OR-Tools builds the warm start (CHRISTOFIDES gave the best start in tuning)
-  ortools_time_limit_sec: 300
+  ortools_time_limit_sec: 1200
   ortools_first_solution: CHRISTOFIDES
   # stage 2: Gurobi improves it and proves a bound
   gurobi:
     license_file: C:/gurobi/gurobi.lic
-    time_limit_sec: 1200
+    time_limit_sec: 7200
     mip_gap: 0.0
     threads: 0
     seed: 42
