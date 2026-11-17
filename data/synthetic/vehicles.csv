@@ -1,0 +1,4 @@
+type,name,capacity_crates,payload_kg,fixed_cost_inr,cost_per_km_inr,available
+S,Tata Ace (mini truck),60,750,1200,9,40
+M,Tata 407 (light commercial),120,2500,2000,14,50
+L,Eicher 14 ft (medium commercial),240,4000,3200,20,50
