@@ -8,6 +8,30 @@ Plans the nightly replenishment of **361 Blinkit dark stores in Delhi-NCR** from
 
 ---
 
+## Academic Details
+
+**MSc Operational Research**  
+**UNIVERSITY OF DELHI, DELHI**  
+Department of Operational Research  
+Faculty of Mathematical Sciences  
+University of Delhi, Delhi – 110007  
+**Session 2026–2027**
+
+---
+
+## Group Members
+
+| S. No. | Name | Examination Roll No. |
+|---:|---|---:|
+| 1. | Shivam Raj Gupta | 25236761100 |
+| 2. | Mohit Verma | 25025761010 |
+| 3. | Shivam | 25236761070 |
+| 4. | Vinay Ruhil | 25236761049 |
+| 5. | Srishti Singhal | 25029761004 |
+| 6. | Sneh | 25236761069 |
+
+---
+
 ## 1. Project Layout
 
 ```
